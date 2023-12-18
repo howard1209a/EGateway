@@ -1,0 +1,8 @@
+routes: # 网关路由配置
+  - id: static-web
+    predicates:
+      - /static/**
+      - /user/**
+  - id: user-service
+    predicates:
+      - /user/**
