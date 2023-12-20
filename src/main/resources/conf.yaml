@@ -1,8 +1,13 @@
 routes: # 网关路由配置
   - id: static-web
+    ip: localhost
+    port: 6666
     predicates:
+      - /c
       - /static/**
       - /user/**
   - id: user-service
+    ip: localhost
+    port: 6667
     predicates:
       - /user/**

@@ -11,5 +11,16 @@ import java.util.List;
 @NoArgsConstructor
 public class Route {
     private String id;
+    private String ip;
+    private String port;
     private List<Predicate> predicates;
+
+    public boolean matches(String uri) {
+        for (Predicate predicate : predicates) {
+            if (predicate.matches(uri)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
