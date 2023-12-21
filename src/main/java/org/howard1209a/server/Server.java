@@ -7,11 +7,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.HttpClientCodec;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.howard1209a.configure.ServerConfiguration;
 import org.howard1209a.exception.ServerRepeatStartException;
+import org.howard1209a.server.handler.DistributeHandler;
 import org.howard1209a.server.handler.RouteHandler;
 
 import java.io.FileNotFoundException;
@@ -28,7 +30,6 @@ public class Server {
         ServerConfiguration.init();
         initBootstrap();
         initServerBootstrap();
-
     }
 
     private void initBootstrap() {
@@ -36,7 +37,13 @@ public class Server {
         this.bootstrap = new Bootstrap();
         this.bootstrap.channel(NioSocketChannel.class)
                 .group(clientWorker)
-                .handler(new ChannelInboundHandlerAdapter());
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline().addLast(new HttpClientCodec());
+                        socketChannel.pipeline().addLast(new DistributeHandler());
+                    }
+                });
     }
 
     private void initServerBootstrap() {

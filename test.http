@@ -1,4 +1,11 @@
+GET http://localhost:12090/static
+Accept: application/json
+
+###
 GET http://localhost:12090/api/item?id=99
 Accept: application/json
 
 ###
+
+GET http://localhost:12091/static
+Accept: application/json

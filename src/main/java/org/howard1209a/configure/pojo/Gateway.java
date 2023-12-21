@@ -11,4 +11,13 @@ import java.util.List;
 @NoArgsConstructor
 public class Gateway {
     private List<Route> routes;
+
+    public Route matchRoute(String uri) {
+        for (Route route : routes) {
+            if (route.matches(uri)) {
+                return route;
+            }
+        }
+        return null;
+    }
 }
