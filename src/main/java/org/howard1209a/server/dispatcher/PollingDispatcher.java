@@ -34,8 +34,8 @@ public class PollingDispatcher implements Dispatcher {
         }
         int countNum = count.incrementAndGet() % weightSum;
         for (int i = 0; i < addresses.size(); i++) { // 权重轮询
-            Address address = addresses.get(0);
-            if (countNum <= address.getWeight()) {
+            Address address = addresses.get(i);
+            if (countNum < address.getWeight()) {
                 return address;
             }
             countNum -= address.getWeight();

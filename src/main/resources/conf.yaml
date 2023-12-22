@@ -4,9 +4,11 @@ routes: # 网关路由配置
       - name: address1
         ip: localhost
         port: 12091
+        weight: 1000
       - name: address2
         ip: localhost
         port: 12092
+        weight: 500
     predicates:
       - /c
       - /static/**

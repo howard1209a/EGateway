@@ -28,7 +28,7 @@ public class ServerConfiguration {
         this.confInfo = yaml.load(inputStream);
 
         processPattern();
-        System.out.println("1");
+        processAddressWeight();
     }
 
     public static Gateway getInfo() {
@@ -75,7 +75,7 @@ public class ServerConfiguration {
     // 使用欧几里得算法计算任意多个数的最大公因子
     public static int findMultiGCD(int[] numbers) {
         if (numbers.length < 2) {
-            throw new IllegalArgumentException("至少需要提供两个数");
+            return numbers[0];
         }
 
         int gcd = findGCD(numbers[0], numbers[1]);

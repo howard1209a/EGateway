@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.howard1209a.configure.ServerConfiguration;
 import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.exception.ServerRepeatStartException;
+import org.howard1209a.server.dispatcher.HashDispatcher;
 import org.howard1209a.server.dispatcher.PollingDispatcher;
 import org.howard1209a.server.handler.DispatchHandler;
 import org.howard1209a.server.handler.DistributeHandler;
@@ -56,6 +57,7 @@ public class Server {
         NioEventLoopGroup serverWorker = new NioEventLoopGroup(2);
         this.serverBootstrap = new ServerBootstrap();
         PollingDispatcher pollingDispatcher = new PollingDispatcher();
+        HashDispatcher hashDispatcher=new HashDispatcher();
 
         this.serverBootstrap.group(boss, serverWorker)
                 .channel(NioServerSocketChannel.class)
@@ -64,7 +66,7 @@ public class Server {
                     protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
                         nioSocketChannel.pipeline().addLast(new HttpServerCodec());
                         nioSocketChannel.pipeline().addLast(new RouteHandler());
-                        nioSocketChannel.pipeline().addLast(new DispatchHandler(pollingDispatcher));
+                        nioSocketChannel.pipeline().addLast(new DispatchHandler(hashDispatcher));
                     }
                 })
                 .bind(12090);
