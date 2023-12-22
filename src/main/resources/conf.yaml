@@ -1,13 +1,20 @@
 routes: # 网关路由配置
   - id: static-web
-    ip: localhost
-    port: 12091
+    addresses:
+      - name: address1
+        ip: localhost
+        port: 12091
+      - name: address2
+        ip: localhost
+        port: 12092
     predicates:
       - /c
       - /static/**
       - /user/**
   - id: user-service
-    ip: localhost
-    port: 6667
+    addresses:
+      - name: address3
+        ip: localhost
+        port: 6667
     predicates:
       - /user/**
