@@ -25,6 +25,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import java.io.*;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
@@ -94,5 +95,51 @@ public class T1 {
         }).bind(12091);
         future.sync();
         future.channel().closeFuture().sync();
+    }
+
+    @Test
+    public void t7() throws InterruptedException {
+        ChannelFuture future = new ServerBootstrap().group(new NioEventLoopGroup(2)).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<NioSocketChannel>() {
+            @Override
+            protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
+                nioSocketChannel.pipeline().addLast(new HttpServerCodec());
+                nioSocketChannel.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+                    @Override
+                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
+                        response.headers().setInt(CONTENT_LENGTH, 0);
+                        ctx.writeAndFlush(response);
+                    }
+                });
+            }
+        }).bind(12092);
+        future.sync();
+        future.channel().closeFuture().sync();
+    }
+
+    @Test
+    public void t8() {
+        int num1 = 1;
+        int num2 = 1;
+
+        // 计算最大公因子
+        int gcd = findGCD(num1, num2);
+
+        // 消去公因子后的结果
+        int result1 = num1 / gcd;
+        int result2 = num2 / gcd;
+
+        System.out.println("原始数值: " + num1 + " 和 " + num2);
+        System.out.println("最大公因子: " + gcd);
+        System.out.println("消去公因子后的结果: " + result1 + " 和 " + result2);
+    }
+
+    public static int findGCD(int a, int b) {
+        while (b != 0) {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
     }
 }
