@@ -1,5 +1,6 @@
 GET http://localhost:12090/static
 Accept: application/json
+Connection: close
 
 ###
 GET http://localhost:12090/api/item?id=99

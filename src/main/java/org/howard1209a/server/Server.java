@@ -7,9 +7,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.HttpClientCodec;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.howard1209a.configure.ServerConfiguration;
@@ -17,9 +15,7 @@ import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.exception.ServerRepeatStartException;
 import org.howard1209a.server.dispatcher.HashDispatcher;
 import org.howard1209a.server.dispatcher.PollingDispatcher;
-import org.howard1209a.server.handler.DispatchHandler;
-import org.howard1209a.server.handler.DistributeHandler;
-import org.howard1209a.server.handler.RouteHandler;
+import org.howard1209a.server.handler.*;
 import org.howard1209a.server.pojo.HttpRequestWrapper;
 
 import java.io.FileNotFoundException;
@@ -47,6 +43,15 @@ public class Server {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new HttpClientCodec());
+//                        socketChannel.pipeline().addLast(new DistributeHandler());
+//                        socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<HttpObject>() {
+//
+//                            @Override
+//                            protected void channelRead0(ChannelHandlerContext channelHandlerContext, HttpObject httpObject) throws Exception {
+//                                System.out.println("1");
+//                            }
+//                        });
+//                        socketChannel.pipeline().addLast(new MyResponseHandler());
                         socketChannel.pipeline().addLast(new DistributeHandler());
                     }
                 });
@@ -66,6 +71,7 @@ public class Server {
                     protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
                         nioSocketChannel.pipeline().addLast(new HttpServerCodec());
                         nioSocketChannel.pipeline().addLast(new RouteHandler());
+                        nioSocketChannel.pipeline().addLast(new HeaderHandler());
                         nioSocketChannel.pipeline().addLast(new DispatchHandler(hashDispatcher));
                     }
                 })

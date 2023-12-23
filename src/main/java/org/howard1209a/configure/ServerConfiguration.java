@@ -73,7 +73,7 @@ public class ServerConfiguration {
     }
 
     // 使用欧几里得算法计算任意多个数的最大公因子
-    public static int findMultiGCD(int[] numbers) {
+    private static int findMultiGCD(int[] numbers) {
         if (numbers.length < 2) {
             return numbers[0];
         }
