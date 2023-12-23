@@ -2,18 +2,12 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.Data;
@@ -53,6 +47,8 @@ public class T1 {
         int read = inputStream.read();
     }
 
+    private static int count = 1;
+
     @Test
     public void testClient() throws InterruptedException {
         NioEventLoopGroup worker = new NioEventLoopGroup();
@@ -62,13 +58,20 @@ public class T1 {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+                ch.pipeline().addLast(new HttpClientCodec());
+                ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+                    @Override
+                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                        ctx.writeAndFlush(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/static"));
+                        System.out.println(count++);
+                    }
+                });
             }
         });
-        ChannelFuture channelFuture = bootstrap.connect("localhost", 12091).sync();
+        ChannelFuture channelFuture = bootstrap.connect("localhost", 12090).sync();
         ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer(10);
-        buffer.writeBytes("11".getBytes());
-        channelFuture.channel().writeAndFlush(buffer);
+        buffer.writeBytes("h".getBytes());
+        channelFuture.channel().writeAndFlush(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/static", buffer));
         channelFuture.channel().closeFuture().sync();
     }
 
@@ -87,7 +90,9 @@ public class T1 {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                         DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
-                        response.headers().setInt(CONTENT_LENGTH, 0);
+                        byte[] bytes = "<h1>Hello, world!</h1>".getBytes();
+                        response.headers().setInt(CONTENT_LENGTH, bytes.length);
+                        response.content().writeBytes(bytes);
                         ctx.writeAndFlush(response);
                     }
                 });
@@ -107,7 +112,9 @@ public class T1 {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                         DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, HttpResponseStatus.OK);
-                        response.headers().setInt(CONTENT_LENGTH, 0);
+                        byte[] bytes = "<h1>Hello, world!</h1>".getBytes();
+                        response.headers().setInt(CONTENT_LENGTH, bytes.length);
+                        response.content().writeBytes(bytes);
                         ctx.writeAndFlush(response);
                     }
                 });
@@ -141,5 +148,10 @@ public class T1 {
             a = temp;
         }
         return a;
+    }
+
+    @Test
+    public void t9() {
+        System.out.println(999999==new Integer(999999));
     }
 }

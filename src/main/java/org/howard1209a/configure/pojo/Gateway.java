@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Gateway {
+    private Protocal protocol;
     private List<Route> routes;
 
     public Route matchRoute(String uri) {
