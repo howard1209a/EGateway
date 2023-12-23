@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.howard1209a.configure.ServerConfiguration;
+import org.howard1209a.configure.pojo.Downstream;
 import org.howard1209a.server.KeepaliveManager;
 import org.howard1209a.server.StreamManager;
 
@@ -37,7 +38,10 @@ public class DistributeHandler extends SimpleChannelInboundHandler<HttpObject> {
                 KeepaliveManager keepaliveManager = KeepaliveManager.getInstance();
                 KeepaliveManager.KeepaliveState keepaliveState = keepaliveManager.get(downStreamChannel);
                 if (keepaliveState != null) {
-                    response.headers().add("Connection", "keep-alive");
+                    Downstream downstream = ServerConfiguration.getInfo().getProtocol().getDownstream();
+                    HttpHeaders headers = response.headers();
+                    headers.add("Connection", "keep-alive");
+                    headers.add("Keep-Alive", "timeout=" + downstream.getTimeout() + ", max=" + downstream.getMax());
                 }
                 ChannelFuture distributeFuture = downStreamChannel.writeAndFlush(response);
                 if (keepaliveState != null) {
