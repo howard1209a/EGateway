@@ -16,11 +16,32 @@ routes: # 网关路由配置
     predicates:
       - /c
       - /static/**
-      - /user/**
+    loadBalance: polling
+    cache:
+      path: /Users/howard1209a/Desktop/codes/EGateway/cache/route1
+      level: 1/2
+      metadata: false
+      expireTime: 10
+      statusHeader: true
+      minuse: 1
+
   - id: user-service
     addresses:
-      - name: address3
+      - name: address1
         ip: localhost
-        port: 6667
+        port: 12091
+        weight: 1000
+      - name: address2
+        ip: localhost
+        port: 12092
+        weight: 500
     predicates:
       - /user/**
+    loadBalance: hash
+    cache:
+      path: /Users/howard1209a/Desktop/codes/EGateway/cache/route2
+      level: 2
+      metadata: false
+      expireTime: 10
+      statusHeader: true
+      minuse: 1

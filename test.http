@@ -3,6 +3,11 @@ Accept: application/json
 Connection: close
 
 ###
+GET http://localhost:12090/user
+Accept: application/json
+Connection: close
+
+###
 GET http://localhost:12090/api/item?id=99
 Accept: application/json
 

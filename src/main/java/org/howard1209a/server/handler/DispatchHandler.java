@@ -14,6 +14,18 @@ public class DispatchHandler extends ChannelInboundHandlerAdapter {
         this.dispatcher = dispatcher;
     }
 
+    public DispatchHandler() {
+        this.dispatcher = null;
+    }
+
+    public Dispatcher getDispatcher() {
+        return dispatcher;
+    }
+
+    public void setDispatcher(Dispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         HttpRequestWrapper wrapper = (HttpRequestWrapper) msg;

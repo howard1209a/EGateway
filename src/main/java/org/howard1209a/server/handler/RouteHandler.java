@@ -13,6 +13,9 @@ import org.howard1209a.configure.pojo.Gateway;
 import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.server.Server;
 import org.howard1209a.server.StreamManager;
+import org.howard1209a.server.dispatcher.Dispatcher;
+import org.howard1209a.server.dispatcher.HashDispatcher;
+import org.howard1209a.server.dispatcher.PollingDispatcher;
 import org.howard1209a.server.pojo.HttpRequestWrapper;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
@@ -41,6 +44,19 @@ public class RouteHandler extends ChannelInboundHandlerAdapter {
                 }
             });
             return;
+        }
+
+        // 如果是第一次route，那么需要根据route配置中的负载均衡策略来初始化相应的dispatcher
+        DispatchHandler dispatchHandler = (DispatchHandler) ctx.pipeline().get("DispatchHandler");
+        if (dispatchHandler.getDispatcher() == null) {
+            Dispatcher dispatcher = null;
+            String loadbalanceMathod = route.getLoadBalance();
+            if (loadbalanceMathod.equals("polling")) {
+                dispatcher = PollingDispatcher.getInstance();
+            } else if (loadbalanceMathod.equals("hash")) {
+                dispatcher = HashDispatcher.getInstance();
+            }
+            dispatchHandler.setDispatcher(dispatcher);
         }
 
         HttpRequestWrapper wrapper = new HttpRequestWrapper(httpRequest, route, downStreamChannel);

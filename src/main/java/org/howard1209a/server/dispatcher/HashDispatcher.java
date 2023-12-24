@@ -8,6 +8,12 @@ import org.howard1209a.server.pojo.HttpRequestWrapper;
 import java.util.List;
 
 public class HashDispatcher implements Dispatcher {
+    private static final HashDispatcher HASH_DISPATCHER = new HashDispatcher();
+
+    public static HashDispatcher getInstance() {
+        return HASH_DISPATCHER;
+    }
+
     @Override
     public Address dispatch(HttpRequestWrapper wrapper) {
         Channel downStreamChannel = wrapper.getDownStreamChannel();

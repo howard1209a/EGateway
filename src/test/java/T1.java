@@ -20,6 +20,7 @@ import java.io.*;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
 
@@ -151,7 +152,9 @@ public class T1 {
     }
 
     @Test
-    public void t9() {
-        System.out.println(999999==new Integer(999999));
+    public void t9() throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream("/Users/howard1209a/Desktop/codes/EGateway/1.txt", false);
+        fileOutputStream.write("1".getBytes());
+        fileOutputStream.close();
     }
 }

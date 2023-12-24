@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.howard1209a.cache.ResponseCacheProvider;
 import org.howard1209a.configure.ServerConfiguration;
 import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.exception.ServerRepeatStartException;
@@ -30,6 +31,7 @@ public class Server {
 
     private Server() {
         ServerConfiguration.init();
+        ResponseCacheProvider.init();
         initBootstrap();
         initServerBootstrap();
     }
@@ -43,15 +45,6 @@ public class Server {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new HttpClientCodec());
-//                        socketChannel.pipeline().addLast(new DistributeHandler());
-//                        socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<HttpObject>() {
-//
-//                            @Override
-//                            protected void channelRead0(ChannelHandlerContext channelHandlerContext, HttpObject httpObject) throws Exception {
-//                                System.out.println("1");
-//                            }
-//                        });
-//                        socketChannel.pipeline().addLast(new MyResponseHandler());
                         socketChannel.pipeline().addLast(new DistributeHandler());
                     }
                 });
@@ -61,18 +54,16 @@ public class Server {
         NioEventLoopGroup boss = new NioEventLoopGroup(1);
         NioEventLoopGroup serverWorker = new NioEventLoopGroup(2);
         this.serverBootstrap = new ServerBootstrap();
-        PollingDispatcher pollingDispatcher = new PollingDispatcher();
-        HashDispatcher hashDispatcher=new HashDispatcher();
 
         this.serverBootstrap.group(boss, serverWorker)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
-                        nioSocketChannel.pipeline().addLast(new HttpServerCodec());
-                        nioSocketChannel.pipeline().addLast(new RouteHandler());
-                        nioSocketChannel.pipeline().addLast(new HeaderHandler());
-                        nioSocketChannel.pipeline().addLast(new DispatchHandler(hashDispatcher));
+                        nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
+                        nioSocketChannel.pipeline().addLast("RouteHandler", new RouteHandler());
+                        nioSocketChannel.pipeline().addLast("HeaderHandler", new HeaderHandler());
+                        nioSocketChannel.pipeline().addLast("DispatchHandler", new DispatchHandler());
                     }
                 })
                 .bind(12090);
@@ -96,10 +87,6 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        try {
-            Server.run();
-        } catch (ServerRepeatStartException e) {
-            throw new RuntimeException(e);
-        }
+        Server.run();
     }
 }
