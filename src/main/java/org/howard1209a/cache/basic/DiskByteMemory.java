@@ -7,6 +7,7 @@ import org.howard1209a.exception.RootPathNotEmptyException;
 import org.howard1209a.exception.RootPathNotExistException;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,12 +23,13 @@ public class DiskByteMemory implements ByteMemory {
 
     public DiskByteMemory(Cache cache) {
         this.rootPath = cache.getPath();
+        this.chunkPaths = new ArrayList<>();
         this.chunkIndex = new AtomicInteger(0);
         this.lockMap = new ConcurrentHashMap<>();
-        generateCacheStructure(cache);
+//        generateCacheStructure(cache);
     }
 
-    private void generateCacheStructure(Cache cache) {
+    private void generateCacheStructure(Cache cache) { // 创建缓存目录结构
         String[] split = cache.getLevel().split("/");
         int[] level = new int[split.length];
         for (int i = 0; i < split.length; i++) {
@@ -73,7 +75,7 @@ public class DiskByteMemory implements ByteMemory {
     }
 
     @Override
-    public void set(String key, byte[] value) {
+    public void set(String key, byte[] value) { // 写锁
         ReentrantReadWriteLock lock = lockMap.computeIfAbsent(key, new Function<String, ReentrantReadWriteLock>() {
             @Override
             public ReentrantReadWriteLock apply(String s) {
@@ -92,7 +94,9 @@ public class DiskByteMemory implements ByteMemory {
             throw new RuntimeException(e);
         } finally {
             try {
-                fileOutputStream.close();
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -102,11 +106,47 @@ public class DiskByteMemory implements ByteMemory {
     }
 
     @Override
-    public byte[] get(String key) {
-        return new byte[0];
+    public byte[] get(String key) { // 读锁
+        ReentrantReadWriteLock lock = lockMap.computeIfAbsent(key, new Function<String, ReentrantReadWriteLock>() {
+            @Override
+            public ReentrantReadWriteLock apply(String s) {
+                return new ReentrantReadWriteLock();
+            }
+        });
+        ReentrantReadWriteLock.ReadLock readLock = lock.readLock();
+        FileInputStream fileInputStream = null;
+        readLock.lock();
+        try {
+            File file = findFile(new File(this.rootPath), key);
+            if (file == null) {
+                return null;
+            }
+            String chunkPath = file.getAbsolutePath();
+            fileInputStream = new FileInputStream(chunkPath);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+            return byteArray;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (fileInputStream != null) {
+                    fileInputStream.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                readLock.unlock();
+            }
+        }
     }
 
-    private File findFile(File inputFile, String key) {
+    private File findFile(File inputFile, String key) { // 递归寻找inputFile目录下的key文件
         File[] files = inputFile.listFiles();
         for (File file : files) {
             if (!file.isDirectory()) {

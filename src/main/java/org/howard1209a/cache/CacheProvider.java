@@ -27,36 +27,36 @@ abstract public class CacheProvider<T> {
         }
     }
 
-    public void save(Route route, String key, String value) {
+    protected void save(Route route, String key, String value) {
         ByteMemory byteMemory = memoryMap.get(route);
         byteMemory.set(key, value.getBytes());
     }
 
-    public void save(String key, Object value) {
+    protected void save(Route route, String key, Object value) {
         try {
             String s = objectMapper.writeValueAsString(value);
-            save(key, s);
+            save(route, key, s);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String load(Route route, String key) {
+    protected String load(Route route, String key) {
         ByteMemory byteMemory = memoryMap.get(route);
         byte[] bytes = byteMemory.get(key);
-        return new String(bytes);
+        return bytes != null ? new String(bytes) : null;
     }
 
-    public <I> I load(Route route, String key, Class<I> c) {
+    protected <I> I load(Route route, String key, Class<I> c) {
         String value = load(route, key);
         try {
-            return objectMapper.readValue(value, c);
+            return value != null ? objectMapper.readValue(value, c) : null;
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public abstract void saveCache(String key, T value);
+    public abstract void saveCache(Route route, String key, T value);
 
-    public abstract T loadCache(String key);
+    public abstract T loadCache(Route route, String key);
 }

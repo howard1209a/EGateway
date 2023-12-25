@@ -1,4 +1,4 @@
-package org.howard1209a.server.handler;
+package org.howard1209a.server.handler.downstream;
 
 import io.netty.channel.*;
 import org.howard1209a.configure.pojo.Address;
@@ -29,14 +29,14 @@ public class DispatchHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         HttpRequestWrapper wrapper = (HttpRequestWrapper) msg;
-        Address address = dispatcher.dispatch(wrapper);
+        Address address = dispatcher.dispatch(wrapper); // 获取目的Address
 
         ChannelFuture connectFuture = Server.getInstance().connect(address.getIp(), Integer.parseInt(address.getPort()));
         connectFuture.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture channelFuture) throws Exception {
                 Channel upStreamChannel = channelFuture.channel();
-                StreamManager.getInstance().put(upStreamChannel, wrapper.getDownStreamChannel());
+                StreamManager.getInstance().put(upStreamChannel, wrapper.getDownStreamChannel()); // 建立映射
                 upStreamChannel.writeAndFlush(wrapper.getRequest());
             }
         });

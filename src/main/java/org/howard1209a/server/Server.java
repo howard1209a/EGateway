@@ -8,20 +8,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.howard1209a.cache.ResponseCacheProvider;
 import org.howard1209a.configure.ServerConfiguration;
-import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.exception.ServerRepeatStartException;
-import org.howard1209a.server.dispatcher.HashDispatcher;
-import org.howard1209a.server.dispatcher.PollingDispatcher;
-import org.howard1209a.server.handler.*;
-import org.howard1209a.server.pojo.HttpRequestWrapper;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
+import org.howard1209a.server.handler.downstream.DispatchHandler;
+import org.howard1209a.server.handler.downstream.FullHttpRequestAggregator;
+import org.howard1209a.server.handler.downstream.HeaderHandler;
+import org.howard1209a.server.handler.downstream.RouteHandler;
+import org.howard1209a.server.handler.upstream.DistributeHandler;
+import org.howard1209a.server.handler.upstream.FullHttpResponseAggregator;
 
 @Slf4j
 public class Server {
@@ -45,6 +41,7 @@ public class Server {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new HttpClientCodec());
+                        socketChannel.pipeline().addLast(new FullHttpResponseAggregator());
                         socketChannel.pipeline().addLast(new DistributeHandler());
                     }
                 });
@@ -61,6 +58,7 @@ public class Server {
                     @Override
                     protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
                         nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
+                        nioSocketChannel.pipeline().addLast("FullHttpRequestAggregator",new FullHttpRequestAggregator());
                         nioSocketChannel.pipeline().addLast("RouteHandler", new RouteHandler());
                         nioSocketChannel.pipeline().addLast("HeaderHandler", new HeaderHandler());
                         nioSocketChannel.pipeline().addLast("DispatchHandler", new DispatchHandler());

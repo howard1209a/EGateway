@@ -87,6 +87,7 @@ public class T1 {
             @Override
             protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
                 nioSocketChannel.pipeline().addLast(new HttpServerCodec());
+                nioSocketChannel.pipeline().addLast(new LoggingHandler());
                 nioSocketChannel.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -109,6 +110,7 @@ public class T1 {
             @Override
             protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
                 nioSocketChannel.pipeline().addLast(new HttpServerCodec());
+                nioSocketChannel.pipeline().addLast(new LoggingHandler());
                 nioSocketChannel.pipeline().addLast(new ChannelInboundHandlerAdapter() {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -153,8 +155,15 @@ public class T1 {
 
     @Test
     public void t9() throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream("/Users/howard1209a/Desktop/codes/EGateway/1.txt", false);
-        fileOutputStream.write("1".getBytes());
-        fileOutputStream.close();
+        ByteBuf byteBuf=ByteBufAllocator.DEFAULT.heapBuffer();
+        ByteBuf byteBuf1=ByteBufAllocator.DEFAULT.heapBuffer();
+        ByteBuf byteBuf2=ByteBufAllocator.DEFAULT.heapBuffer();
+        byteBuf1.writeBytes("hello".getBytes());
+        byteBuf2.writeBytes("world".getBytes());
+        byteBuf.writeBytes(byteBuf1);
+        byteBuf.writeBytes(byteBuf2);
+        byte[] buffer=new byte[100];
+        byteBuf.readBytes(buffer,0,10);
+        System.out.println(new String(buffer));
     }
 }

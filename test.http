@@ -1,4 +1,4 @@
-GET http://localhost:12090/static
+GET http://localhost:12090/static?name=dyp
 Accept: application/json
 Connection: close
 
