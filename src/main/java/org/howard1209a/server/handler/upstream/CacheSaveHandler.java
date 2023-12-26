@@ -11,16 +11,19 @@ import org.howard1209a.cache.pojo.PersistentResponse;
 import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.server.StreamManager;
 
-public class CacheHandler extends ChannelInboundHandlerAdapter {
+public class CacheSaveHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         FullHttpResponse response = (FullHttpResponse) msg;
         Channel upStreamChannel = ctx.channel();
+
         StreamManager streamManager = StreamManager.getInstance();
         Route route = streamManager.getRoute(upStreamChannel);
         FullHttpRequest request = streamManager.getFullHttpRequest(upStreamChannel);
+
         CacheProvider<PersistentResponse> cacheProvider = ResponseCacheProvider.getInstance();
-        cacheProvider.saveCache(route, ResponseCacheProvider.FullHttpRequest2MD5(request), ResponseCacheProvider.DefaultFullHttpResponse2PersistentResponse(response));
+        PersistentResponse persistentResponse = ResponseCacheProvider.DefaultFullHttpResponse2PersistentResponse(response);
+        cacheProvider.saveCache(route, ResponseCacheProvider.FullHttpRequest2MD5(request), persistentResponse);
         super.channelRead(ctx, msg);
     }
 }

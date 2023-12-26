@@ -1,3 +1,9 @@
+POST http://localhost:12090/static
+Content-Type: application/json
+
+{}
+
+###
 GET http://localhost:12090/static?name=dyp
 Accept: application/json
 Connection: close
@@ -15,3 +21,5 @@ Accept: application/json
 
 GET http://localhost:12091/static
 Accept: application/json
+
+

@@ -40,9 +40,9 @@ public class DiskByteMemory implements ByteMemory {
         if (!directory.exists()) {
             throw new RootPathNotExistException("root path do not exist!");
         }
-//        if (directory.listFiles().length != 0) {
-//            throw new RootPathNotEmptyException("root path do not empty!");
-//        }
+        if (directory.listFiles().length != 0) {
+            throw new RootPathNotEmptyException("root path do not empty!");
+        }
 
         backtracking(level, 0, new StringBuilder(this.rootPath));
     }

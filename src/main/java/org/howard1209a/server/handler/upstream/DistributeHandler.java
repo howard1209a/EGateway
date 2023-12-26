@@ -1,5 +1,6 @@
 package org.howard1209a.server.handler.upstream;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -27,6 +28,8 @@ public class DistributeHandler extends ChannelInboundHandlerAdapter {
             headers.add("Connection", "keep-alive");
             headers.add("Keep-Alive", "timeout=" + downstream.getTimeout() + ", max=" + downstream.getMax());
         }
+        ByteBuf payload = response.content();
+        payload.setIndex(0, payload.writerIndex());
         ChannelFuture distributeFuture = downStreamChannel.writeAndFlush(response);
 
         keepaliveManager.handleDownStreamChannelClose(downStreamChannel, distributeFuture);
