@@ -2,6 +2,7 @@ package org.howard1209a.cache;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.howard1209a.cache.basic.ByteMemory;
 import org.howard1209a.cache.basic.DiskByteMemory;
 import org.howard1209a.configure.ServerConfiguration;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-abstract public class CacheProvider<T> {
+public abstract class CacheProvider<T> {
     private ConcurrentHashMap<Route, ByteMemory> memoryMap;
     private ObjectMapper objectMapper;
 

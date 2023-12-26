@@ -16,6 +16,7 @@ import org.howard1209a.server.handler.downstream.DispatchHandler;
 import org.howard1209a.server.handler.downstream.FullHttpRequestAggregator;
 import org.howard1209a.server.handler.downstream.HeaderHandler;
 import org.howard1209a.server.handler.downstream.RouteHandler;
+import org.howard1209a.server.handler.upstream.CacheHandler;
 import org.howard1209a.server.handler.upstream.DistributeHandler;
 import org.howard1209a.server.handler.upstream.FullHttpResponseAggregator;
 
@@ -42,6 +43,7 @@ public class Server {
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new HttpClientCodec());
                         socketChannel.pipeline().addLast(new FullHttpResponseAggregator());
+                        socketChannel.pipeline().addLast(new CacheHandler());
                         socketChannel.pipeline().addLast(new DistributeHandler());
                     }
                 });

@@ -16,7 +16,7 @@ public class DistributeHandler extends ChannelInboundHandlerAdapter {
         FullHttpResponse response = (FullHttpResponse) msg;
 
         Channel upStreamChannel = ctx.channel();
-        Channel downStreamChannel = StreamManager.getInstance().get(upStreamChannel);
+        Channel downStreamChannel = StreamManager.getInstance().getDownStreamChannel(upStreamChannel);
         StreamManager.getInstance().remove(upStreamChannel); // 删除映射
         upStreamChannel.close(); // 异步关闭upStreamChannel
 

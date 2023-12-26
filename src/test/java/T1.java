@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -11,14 +13,18 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.Data;
+import org.howard1209a.cache.ResponseCacheProvider;
+import org.howard1209a.cache.pojo.PersistentResponse;
 import org.howard1209a.exception.ServerException;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.*;
-import java.util.Map;
-import java.util.Random;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -165,5 +171,47 @@ public class T1 {
         byte[] buffer=new byte[100];
         byteBuf.readBytes(buffer,0,10);
         System.out.println(new String(buffer));
+    }
+
+    @Test
+    public void t10() {
+        String input = "Hello, MD5!";
+
+        try {
+            // 获取MD5实例
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            // 计算MD5摘要
+            byte[] messageDigest = md.digest(input.getBytes());
+
+            // 将字节数组转换为BigInteger
+            BigInteger number = new BigInteger(1, messageDigest);
+
+            // 将BigInteger转换为16进制字符串
+            String md5 = number.toString(16);
+
+            // 补齐前导零，确保输出为32位
+            while (md5.length() < 32) {
+                md5 = "0" + md5;
+            }
+
+            System.out.println("MD5 Hash: " + md5);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void t11() throws JsonProcessingException {
+        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.heapBuffer();
+        byteBuf.writeBytes("hello".getBytes());
+        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, HttpResponseStatus.OK, byteBuf);
+        response.headers().add("co","hi");
+        PersistentResponse persistentResponse = ResponseCacheProvider.DefaultFullHttpResponse2PersistentResponse(response);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(persistentResponse);
+        PersistentResponse result = objectMapper.readValue(json, PersistentResponse.class);
+        DefaultFullHttpResponse response1 = ResponseCacheProvider.PersistentResponse2DefaultFullHttpResponse(result);
+        System.out.println(response1);
     }
 }

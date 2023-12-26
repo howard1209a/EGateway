@@ -26,7 +26,7 @@ public class DiskByteMemory implements ByteMemory {
         this.chunkPaths = new ArrayList<>();
         this.chunkIndex = new AtomicInteger(0);
         this.lockMap = new ConcurrentHashMap<>();
-//        generateCacheStructure(cache);
+        generateCacheStructure(cache);
     }
 
     private void generateCacheStructure(Cache cache) { // 创建缓存目录结构
@@ -40,9 +40,9 @@ public class DiskByteMemory implements ByteMemory {
         if (!directory.exists()) {
             throw new RootPathNotExistException("root path do not exist!");
         }
-        if (directory.listFiles().length != 0) {
-            throw new RootPathNotEmptyException("root path do not empty!");
-        }
+//        if (directory.listFiles().length != 0) {
+//            throw new RootPathNotEmptyException("root path do not empty!");
+//        }
 
         backtracking(level, 0, new StringBuilder(this.rootPath));
     }

@@ -23,6 +23,7 @@ public class FullHttpRequestAggregator extends ChannelInboundHandlerAdapter {
             requestData.writeBytes(httpContent.content());
             if (msg instanceof LastHttpContent) {
                 FullHttpRequest newRequest = generateRequest();
+                requestData.retain(); // 保留一次
                 super.channelRead(ctx, newRequest);
             }
         }
