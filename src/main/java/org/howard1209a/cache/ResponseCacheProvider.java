@@ -18,7 +18,7 @@ import java.util.Map;
 public class ResponseCacheProvider extends CacheProvider<PersistentResponse> {
     private static final ResponseCacheProvider RESPONSE_CACHE_PROVIDER = new ResponseCacheProvider();
 
-    public static ResponseCacheProvider getInstance() {
+    public static CacheProvider<PersistentResponse> getInstance() {
         return RESPONSE_CACHE_PROVIDER;
     }
 
@@ -34,6 +34,11 @@ public class ResponseCacheProvider extends CacheProvider<PersistentResponse> {
     public PersistentResponse loadCache(Route route, String key) {
         PersistentResponse response = super.load(route, key, PersistentResponse.class);
         return response;
+    }
+
+    @Override
+    public void deleteCache(Route route, String key) {
+        super.delete(route, key);
     }
 
     public static void init() {
@@ -72,6 +77,7 @@ public class ResponseCacheProvider extends CacheProvider<PersistentResponse> {
         return md5;
     }
 
+    // DefaultFullHttpResponse转可序列化的pojo
     public static PersistentResponse DefaultFullHttpResponse2PersistentResponse(FullHttpResponse fullHttpResponse) {
         DefaultFullHttpResponse response = (DefaultFullHttpResponse) fullHttpResponse;
 
@@ -88,6 +94,7 @@ public class ResponseCacheProvider extends CacheProvider<PersistentResponse> {
         return new PersistentResponse(protocolVersion, status, data, headers);
     }
 
+    // 可序列化的pojo转DefaultFullHttpResponse
     public static DefaultFullHttpResponse PersistentResponse2DefaultFullHttpResponse(PersistentResponse persistentResponse) {
         HttpVersion httpVersion = HttpVersion.valueOf(persistentResponse.getProtocolVersion());
         HttpResponseStatus httpResponseStatus = HttpResponseStatus.valueOf(persistentResponse.getStatus());

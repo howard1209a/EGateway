@@ -17,6 +17,8 @@ import org.howard1209a.server.handler.upstream.CacheSaveHandler;
 import org.howard1209a.server.handler.upstream.DistributeHandler;
 import org.howard1209a.server.handler.upstream.FullHttpResponseAggregator;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 @Slf4j
 public class Server {
     private static Server server;
@@ -72,11 +74,13 @@ public class Server {
     }
 
 
-    public static void run() throws ServerRepeatStartException {
-        if (server == null) {
-            server = new Server();
-        } else {
-            throw new ServerRepeatStartException("server is already started");
+    public static void run() {
+        synchronized (Server.class) {
+            if (server == null) {
+                server = new Server();
+            } else {
+                throw new ServerRepeatStartException("server is already started");
+            }
         }
     }
 

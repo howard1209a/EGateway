@@ -3,6 +3,8 @@ Content-Type: application/json
 
 {}
 
+// 7d18ef127cf829e266386654192ca91b
+
 ###
 GET http://localhost:12090/static?name=dyp
 Accept: application/json

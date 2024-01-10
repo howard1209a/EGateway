@@ -101,7 +101,7 @@ public class KeepaliveManager { // 持久连接管理
         @Override
         public void run() {
             KeepaliveState keepaliveState = MANAGER.get(checkedChannel);
-            if (keepaliveState.getCurrentNum() == lastNum) {
+            if (keepaliveState.getCurrentNum() == lastNum) { // 在一定的时间内没有更多的loop完成，则异步关闭channel
                 checkedChannel.flush();
                 checkedChannel.close();
                 return;

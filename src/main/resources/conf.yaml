@@ -18,9 +18,9 @@ routes: # 网关路由配置
       - /static/**
     loadBalance: polling
     cache:
-      path: /Users/howard1209a/Desktop/codes/EGateway/cache/route1
+      path: F:/codes/EGateway/cache/route1
       level: 1
-      metadata: false
+      metadata: true
       expireTime: 10
       statusHeader: true
       minuse: 1
@@ -39,7 +39,7 @@ routes: # 网关路由配置
       - /user/**
     loadBalance: hash
     cache:
-      path: /Users/howard1209a/Desktop/codes/EGateway/cache/route2
+      path: F:/codes/EGateway/cache/route2
       level: 1
       metadata: false
       expireTime: 10

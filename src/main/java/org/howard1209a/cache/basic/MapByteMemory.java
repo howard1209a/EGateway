@@ -18,4 +18,9 @@ public class MapByteMemory implements ByteMemory {
     public byte[] get(String key) {
         return data.get(key);
     }
+
+    @Override
+    public void delete(String key) {
+
+    }
 }

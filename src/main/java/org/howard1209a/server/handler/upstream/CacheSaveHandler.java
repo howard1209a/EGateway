@@ -10,6 +10,7 @@ import org.howard1209a.cache.ResponseCacheProvider;
 import org.howard1209a.cache.pojo.PersistentResponse;
 import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.server.StreamManager;
+import org.howard1209a.server.handler.downstream.CacheLoadHandler;
 
 public class CacheSaveHandler extends ChannelInboundHandlerAdapter {
     @Override
@@ -23,7 +24,10 @@ public class CacheSaveHandler extends ChannelInboundHandlerAdapter {
 
         CacheProvider<PersistentResponse> cacheProvider = ResponseCacheProvider.getInstance();
         PersistentResponse persistentResponse = ResponseCacheProvider.DefaultFullHttpResponse2PersistentResponse(response);
-        cacheProvider.saveCache(route, ResponseCacheProvider.FullHttpRequest2MD5(request), persistentResponse);
+        String key = ResponseCacheProvider.FullHttpRequest2MD5(request);
+        cacheProvider.saveCache(route, key, persistentResponse);
+        CacheLoadHandler.unlock(key);
+
         super.channelRead(ctx, msg);
     }
 }

@@ -9,6 +9,7 @@ import org.howard1209a.exception.RootPathNotExistException;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -19,13 +20,17 @@ public class DiskByteMemory implements ByteMemory {
     private List<String> chunkPaths;
     private AtomicInteger chunkIndex;
     private ConcurrentHashMap<String, ReentrantReadWriteLock> lockMap;
+    private ConcurrentHashMap<String, String> metaDataMap;
 
 
     public DiskByteMemory(Cache cache) {
         this.rootPath = cache.getPath();
-        this.chunkPaths = new ArrayList<>();
+        this.chunkPaths = new Vector<>();
         this.chunkIndex = new AtomicInteger(0);
         this.lockMap = new ConcurrentHashMap<>();
+        if (cache.isMetadata()) {
+            this.metaDataMap = new ConcurrentHashMap<>();
+        }
         generateCacheStructure(cache);
     }
 
@@ -75,7 +80,8 @@ public class DiskByteMemory implements ByteMemory {
     }
 
     @Override
-    public void set(String key, byte[] value) { // 写锁
+    public void set(String key, byte[] value) { // 存储字节数据到磁盘单个文件
+        // lazy generate lock
         ReentrantReadWriteLock lock = lockMap.computeIfAbsent(key, new Function<String, ReentrantReadWriteLock>() {
             @Override
             public ReentrantReadWriteLock apply(String s) {
@@ -106,7 +112,8 @@ public class DiskByteMemory implements ByteMemory {
     }
 
     @Override
-    public byte[] get(String key) { // 读锁
+    public byte[] get(String key) { // 获取磁盘单个文件存储的字节数据
+        // lazy generate lock
         ReentrantReadWriteLock lock = lockMap.computeIfAbsent(key, new Function<String, ReentrantReadWriteLock>() {
             @Override
             public ReentrantReadWriteLock apply(String s) {
@@ -118,7 +125,7 @@ public class DiskByteMemory implements ByteMemory {
         readLock.lock();
         try {
             File file = findFile(new File(this.rootPath), key);
-            if (file == null) {
+            if (file == null) { // 不存在文件，返回null
                 return null;
             }
             String chunkPath = file.getAbsolutePath();
@@ -143,6 +150,29 @@ public class DiskByteMemory implements ByteMemory {
             } finally {
                 readLock.unlock();
             }
+        }
+    }
+
+    @Override
+    public void delete(String key) { // 删除磁盘单个文件
+        // lazy generate lock
+        ReentrantReadWriteLock lock = lockMap.computeIfAbsent(key, new Function<String, ReentrantReadWriteLock>() {
+            @Override
+            public ReentrantReadWriteLock apply(String s) {
+                return new ReentrantReadWriteLock();
+            }
+        });
+
+        ReentrantReadWriteLock.WriteLock writeLock = lock.writeLock();
+        writeLock.lock();
+        try {
+            File file = findFile(new File(this.rootPath), key);
+            if (file == null) { // 不存在文件，返回
+                return;
+            }
+            file.delete();
+        } finally {
+            writeLock.unlock();
         }
     }
 
