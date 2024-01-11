@@ -14,6 +14,7 @@ import org.howard1209a.cache.pojo.PersistentResponse;
 import org.howard1209a.configure.ServerConfiguration;
 import org.howard1209a.configure.pojo.Gateway;
 import org.howard1209a.configure.pojo.Route;
+import org.howard1209a.monitor.RequestFrequencyMonitor;
 import org.howard1209a.server.KeepaliveManager;
 import org.howard1209a.server.StreamManager;
 import org.howard1209a.server.handler.upstream.HeaderAddHandler;
@@ -52,13 +53,23 @@ public class CacheLoadHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         HttpRequestWrapper wrapper = (HttpRequestWrapper) msg;
-        if (wrapper.isNotCache()) { // 不缓存
+        CacheProvider<PersistentResponse> cacheProvider = ResponseCacheProvider.getInstance();
+        String key = ResponseCacheProvider.FullHttpRequest2MD5(wrapper.getRequest());
+        if (wrapper.isNotCache()) { // 不进行缓存
             super.channelRead(ctx, msg);
             return;
         }
 
-        CacheProvider<PersistentResponse> cacheProvider = ResponseCacheProvider.getInstance();
-        String key = ResponseCacheProvider.FullHttpRequest2MD5(wrapper.getRequest());
+        RequestFrequencyMonitor requestFrequencyMonitor = RequestFrequencyMonitor.getInstance();
+        requestFrequencyMonitor.startMonitor(key); // 开启key对应的监视器
+        requestFrequencyMonitor.record(key); // 记录一次key请求
+        Integer minuse = wrapper.getRoute().getCache().getMinuse();
+        if (requestFrequencyMonitor.getFrequencyPerSecond(key) <= minuse) { // 当前key请求频率<=minuse，不进行缓存
+            wrapper.setNotCache(true);
+            super.channelRead(ctx, msg);
+            return;
+        }
+
         PersistentResponse persistentResponse = cacheProvider.loadCache(wrapper.getRoute(), key);
 
         if (persistentResponse == null) { // 缓存未命中

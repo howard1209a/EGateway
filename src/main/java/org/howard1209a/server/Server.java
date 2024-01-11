@@ -8,6 +8,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.howard1209a.cache.ResponseCacheProvider;
 import org.howard1209a.configure.ServerConfiguration;
@@ -18,17 +19,22 @@ import org.howard1209a.server.handler.upstream.DistributeHandler;
 import org.howard1209a.server.handler.upstream.FullHttpResponseAggregator;
 import org.howard1209a.server.handler.upstream.HeaderAddHandler;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 @Slf4j
-public class Server {
+public class Server { // single
     private static Server server;
     private Bootstrap bootstrap;
     private ServerBootstrap serverBootstrap;
+    private ScheduledExecutorService scheduledExecutorService;
 
     private Server() {
         ServerConfiguration.init();
         ResponseCacheProvider.init();
         initBootstrap();
         initServerBootstrap();
+        initMonitorThread();
     }
 
     private void initBootstrap() {
@@ -69,6 +75,10 @@ public class Server {
                 .bind(12090);
     }
 
+    private void initMonitorThread() {
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    }
+
     public ChannelFuture connect(String inetHost, int inetPort) {
         return this.bootstrap.connect(inetHost, inetPort);
     }
@@ -86,6 +96,10 @@ public class Server {
 
     public static Server getInstance() {
         return server;
+    }
+
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService;
     }
 
     public static void main(String[] args) {
