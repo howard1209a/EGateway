@@ -16,8 +16,7 @@ import org.howard1209a.server.handler.downstream.*;
 import org.howard1209a.server.handler.upstream.CacheSaveHandler;
 import org.howard1209a.server.handler.upstream.DistributeHandler;
 import org.howard1209a.server.handler.upstream.FullHttpResponseAggregator;
-
-import java.util.concurrent.atomic.AtomicReference;
+import org.howard1209a.server.handler.upstream.HeaderAddHandler;
 
 @Slf4j
 public class Server {
@@ -43,6 +42,7 @@ public class Server {
                         socketChannel.pipeline().addLast(new HttpClientCodec());
                         socketChannel.pipeline().addLast(new FullHttpResponseAggregator());
                         socketChannel.pipeline().addLast(new CacheSaveHandler());
+                        socketChannel.pipeline().addLast(new HeaderAddHandler());
                         socketChannel.pipeline().addLast(new DistributeHandler());
                     }
                 });
@@ -61,7 +61,7 @@ public class Server {
                         nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
                         nioSocketChannel.pipeline().addLast("FullHttpRequestAggregator", new FullHttpRequestAggregator());
                         nioSocketChannel.pipeline().addLast("RouteHandler", new RouteHandler());
-                        nioSocketChannel.pipeline().addLast("HeaderHandler", new HeaderHandler());
+                        nioSocketChannel.pipeline().addLast("HeaderParseHandler", new HeaderParseHandler());
                         nioSocketChannel.pipeline().addLast("CacheLoadHandler", new CacheLoadHandler());
                         nioSocketChannel.pipeline().addLast("DispatchHandler", new DispatchHandler());
                     }

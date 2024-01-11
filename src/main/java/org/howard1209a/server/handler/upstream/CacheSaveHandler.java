@@ -22,6 +22,11 @@ public class CacheSaveHandler extends ChannelInboundHandlerAdapter {
         Route route = streamManager.getRoute(upStreamChannel);
         FullHttpRequest request = streamManager.getFullHttpRequest(upStreamChannel);
 
+        if (streamManager.isNotCache(upStreamChannel)) { // 不缓存
+            super.channelRead(ctx, msg);
+            return;
+        }
+
         CacheProvider<PersistentResponse> cacheProvider = ResponseCacheProvider.getInstance();
         PersistentResponse persistentResponse = ResponseCacheProvider.DefaultFullHttpResponse2PersistentResponse(response);
         String key = ResponseCacheProvider.FullHttpRequest2MD5(request);

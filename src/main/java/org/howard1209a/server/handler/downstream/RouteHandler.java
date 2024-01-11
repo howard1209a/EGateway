@@ -30,7 +30,7 @@ public class RouteHandler extends ChannelInboundHandlerAdapter {
 
         updateDispatcher(ctx, route); // 更新负载均衡器
 
-        HttpRequestWrapper wrapper = new HttpRequestWrapper(httpRequest, route, downStreamChannel);
+        HttpRequestWrapper wrapper = new HttpRequestWrapper(httpRequest, route, downStreamChannel, false);
         super.channelRead(ctx, wrapper);
     }
 

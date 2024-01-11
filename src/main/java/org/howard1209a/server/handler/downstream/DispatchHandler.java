@@ -37,7 +37,7 @@ public class DispatchHandler extends ChannelInboundHandlerAdapter {
             public void operationComplete(ChannelFuture channelFuture) throws Exception {
                 Channel upStreamChannel = channelFuture.channel();
                 // 建立映射
-                StreamManager.getInstance().putLoopback(upStreamChannel, wrapper.getDownStreamChannel(), wrapper.getRequest(), wrapper.getRoute());
+                StreamManager.getInstance().putLoopback(upStreamChannel, wrapper);
                 upStreamChannel.writeAndFlush(wrapper.getRequest());
             }
         });

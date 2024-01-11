@@ -24,7 +24,9 @@ public abstract class CacheProvider<T> {
         List<Route> routes = ServerConfiguration.getInfo().getRoutes();
         for (Route route : routes) {
             Cache cache = route.getCache();
-            this.memoryMap.put(route, new DiskByteMemory(cache));
+            if (cache != null) {
+                this.memoryMap.put(route, new DiskByteMemory(cache));
+            }
         }
     }
 

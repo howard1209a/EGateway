@@ -79,6 +79,7 @@ public class DiskByteMemory implements ByteMemory {
         return num;
     }
 
+    // 满足幂等性
     @Override
     public void set(String key, byte[] value) { // 存储字节数据到磁盘单个文件
         // lazy generate lock
@@ -93,7 +94,15 @@ public class DiskByteMemory implements ByteMemory {
         writeLock.lock();
         try {
             File file = findFile(new File(this.rootPath), key);
-            String chunkPath = (file == null ? chunkPaths.get(chunkIndex.getAndIncrement() % chunkPaths.size()) + "/" + key : file.getAbsolutePath());
+            String chunkPath;
+            if (file == null) {
+                chunkPath = chunkPaths.get(chunkIndex.getAndIncrement() % chunkPaths.size()) + "/" + key;
+                if (metaDataMap != null) { // 存储metaData
+                    metaDataMap.put(key, chunkPath);
+                }
+            } else {
+                chunkPath = file.getAbsolutePath();
+            }
             fileOutputStream = new FileOutputStream(chunkPath, false);
             fileOutputStream.write(value);
         } catch (IOException e) {
@@ -111,6 +120,7 @@ public class DiskByteMemory implements ByteMemory {
         }
     }
 
+    // 满足幂等性
     @Override
     public byte[] get(String key) { // 获取磁盘单个文件存储的字节数据
         // lazy generate lock
@@ -124,7 +134,12 @@ public class DiskByteMemory implements ByteMemory {
         FileInputStream fileInputStream = null;
         readLock.lock();
         try {
-            File file = findFile(new File(this.rootPath), key);
+            File file;
+            if (metaDataMap != null && metaDataMap.contains(key)) { // 优先取metaData
+                file = new File(metaDataMap.get(key));
+            } else {
+                file = findFile(new File(this.rootPath), key);
+            }
             if (file == null) { // 不存在文件，返回null
                 return null;
             }
@@ -153,6 +168,7 @@ public class DiskByteMemory implements ByteMemory {
         }
     }
 
+    // 满足幂等性
     @Override
     public void delete(String key) { // 删除磁盘单个文件
         // lazy generate lock
@@ -171,6 +187,9 @@ public class DiskByteMemory implements ByteMemory {
                 return;
             }
             file.delete();
+            if (metaDataMap != null) { // 删除metaData
+                metaDataMap.remove(key);
+            }
         } finally {
             writeLock.unlock();
         }

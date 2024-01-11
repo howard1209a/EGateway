@@ -20,7 +20,7 @@ routes: # 网关路由配置
     cache:
       path: F:/codes/EGateway/cache/route1
       level: 1
-      metadata: true
+      metadata: false
       expireTime: 10
       statusHeader: true
       minuse: 1
@@ -38,10 +38,10 @@ routes: # 网关路由配置
     predicates:
       - /user/**
     loadBalance: hash
-    cache:
-      path: F:/codes/EGateway/cache/route2
-      level: 1
-      metadata: false
-      expireTime: 10
-      statusHeader: true
-      minuse: 1
+#    cache:
+#      path: F:/codes/EGateway/cache/route2
+#      level: 1
+#      metadata: false
+#      expireTime: 10
+#      statusHeader: true
+#      minuse: 1

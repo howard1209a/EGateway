@@ -9,14 +9,24 @@ import io.netty.handler.codec.http.HttpVersion;
 import org.howard1209a.server.KeepaliveManager;
 import org.howard1209a.server.pojo.HttpRequestWrapper;
 
-public class HeaderHandler extends ChannelInboundHandlerAdapter {
+public class HeaderParseHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         HttpRequestWrapper wrapper = (HttpRequestWrapper) msg;
         FullHttpRequest request = wrapper.getRequest();
 
         processConnectionHeader(request, ctx);
+        processCacheHeader(request, wrapper);
         super.channelRead(ctx, msg);
+    }
+
+    private void processCacheHeader(HttpRequest request, HttpRequestWrapper wrapper) {
+        HttpHeaders headers = request.headers();
+        String forceNotCache = headers.get("forceNotCache");
+        // 如果本次请求设置了强制不缓存或没有设置强制不缓存但是对应route没有配置缓存，则本次请求将与缓存无关
+        if (forceNotCache != null || wrapper.getRoute().getCache() == null) {
+            wrapper.setNotCache(true);
+        }
     }
 
     private void processConnectionHeader(HttpRequest request, ChannelHandlerContext ctx) {

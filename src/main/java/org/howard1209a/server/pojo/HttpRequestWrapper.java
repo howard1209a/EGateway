@@ -15,4 +15,5 @@ public class HttpRequestWrapper {
     private FullHttpRequest request;
     private Route route;
     private Channel downStreamChannel;
+    private boolean notCache;
 }
