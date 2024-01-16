@@ -13,6 +13,8 @@ public class Route {
     private String id;
     private List<Address> addresses;
     private List<Predicate> predicates;
+    private String loadBalance;
+    private Cache cache;
 
     public boolean matches(String uri) {
         for (Predicate predicate : predicates) {

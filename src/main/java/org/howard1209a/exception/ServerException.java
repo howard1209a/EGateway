@@ -1,6 +1,6 @@
 package org.howard1209a.exception;
 
-public class ServerException extends Exception {
+public class ServerException extends RuntimeException {
     public ServerException() {
     }
 

@@ -8,30 +8,33 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.logging.LoggingHandler;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.howard1209a.cache.ResponseCacheProvider;
 import org.howard1209a.configure.ServerConfiguration;
-import org.howard1209a.configure.pojo.Route;
 import org.howard1209a.exception.ServerRepeatStartException;
-import org.howard1209a.server.dispatcher.HashDispatcher;
-import org.howard1209a.server.dispatcher.PollingDispatcher;
-import org.howard1209a.server.handler.*;
-import org.howard1209a.server.pojo.HttpRequestWrapper;
+import org.howard1209a.server.handler.downstream.*;
+import org.howard1209a.server.handler.upstream.CacheSaveHandler;
+import org.howard1209a.server.handler.upstream.DistributeHandler;
+import org.howard1209a.server.handler.upstream.FullHttpResponseAggregator;
+import org.howard1209a.server.handler.upstream.HeaderAddHandler;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
-public class Server {
+public class Server { // single
     private static Server server;
     private Bootstrap bootstrap;
     private ServerBootstrap serverBootstrap;
+    private ScheduledExecutorService scheduledExecutorService;
 
     private Server() {
         ServerConfiguration.init();
+        ResponseCacheProvider.init();
         initBootstrap();
         initServerBootstrap();
+        initMonitorThread();
     }
 
     private void initBootstrap() {
@@ -43,15 +46,9 @@ public class Server {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         socketChannel.pipeline().addLast(new HttpClientCodec());
-//                        socketChannel.pipeline().addLast(new DistributeHandler());
-//                        socketChannel.pipeline().addLast(new SimpleChannelInboundHandler<HttpObject>() {
-//
-//                            @Override
-//                            protected void channelRead0(ChannelHandlerContext channelHandlerContext, HttpObject httpObject) throws Exception {
-//                                System.out.println("1");
-//                            }
-//                        });
-//                        socketChannel.pipeline().addLast(new MyResponseHandler());
+                        socketChannel.pipeline().addLast(new FullHttpResponseAggregator());
+                        socketChannel.pipeline().addLast(new CacheSaveHandler());
+                        socketChannel.pipeline().addLast(new HeaderAddHandler());
                         socketChannel.pipeline().addLast(new DistributeHandler());
                     }
                 });
@@ -61,21 +58,25 @@ public class Server {
         NioEventLoopGroup boss = new NioEventLoopGroup(1);
         NioEventLoopGroup serverWorker = new NioEventLoopGroup(2);
         this.serverBootstrap = new ServerBootstrap();
-        PollingDispatcher pollingDispatcher = new PollingDispatcher();
-        HashDispatcher hashDispatcher=new HashDispatcher();
 
         this.serverBootstrap.group(boss, serverWorker)
                 .channel(NioServerSocketChannel.class)
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
-                        nioSocketChannel.pipeline().addLast(new HttpServerCodec());
-                        nioSocketChannel.pipeline().addLast(new RouteHandler());
-                        nioSocketChannel.pipeline().addLast(new HeaderHandler());
-                        nioSocketChannel.pipeline().addLast(new DispatchHandler(hashDispatcher));
+                        nioSocketChannel.pipeline().addLast("HttpServerCodec", new HttpServerCodec());
+                        nioSocketChannel.pipeline().addLast("FullHttpRequestAggregator", new FullHttpRequestAggregator());
+                        nioSocketChannel.pipeline().addLast("RouteHandler", new RouteHandler());
+                        nioSocketChannel.pipeline().addLast("HeaderParseHandler", new HeaderParseHandler());
+                        nioSocketChannel.pipeline().addLast("CacheLoadHandler", new CacheLoadHandler());
+                        nioSocketChannel.pipeline().addLast("DispatchHandler", new DispatchHandler());
                     }
                 })
                 .bind(12090);
+    }
+
+    private void initMonitorThread() {
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     }
 
     public ChannelFuture connect(String inetHost, int inetPort) {
@@ -83,11 +84,13 @@ public class Server {
     }
 
 
-    public static void run() throws ServerRepeatStartException {
-        if (server == null) {
-            server = new Server();
-        } else {
-            throw new ServerRepeatStartException("server is already started");
+    public static void run() {
+        synchronized (Server.class) {
+            if (server == null) {
+                server = new Server();
+            } else {
+                throw new ServerRepeatStartException("server is already started");
+            }
         }
     }
 
@@ -95,11 +98,11 @@ public class Server {
         return server;
     }
 
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService;
+    }
+
     public static void main(String[] args) {
-        try {
-            Server.run();
-        } catch (ServerRepeatStartException e) {
-            throw new RuntimeException(e);
-        }
+        Server.run();
     }
 }

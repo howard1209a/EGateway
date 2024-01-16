@@ -1,4 +1,18 @@
-GET http://localhost:12090/static
+POST http://localhost:12090/static/233
+Content-Type: application/json
+forceNotCache: 1
+
+{}
+
+###
+
+POST http://localhost:12090/static/ying
+Content-Type: application/json
+
+{}
+
+###
+GET http://localhost:12090/user
 Accept: application/json
 Connection: close
 
@@ -10,3 +24,5 @@ Accept: application/json
 
 GET http://localhost:12091/static
 Accept: application/json
+
+

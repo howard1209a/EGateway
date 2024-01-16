@@ -39,3 +39,6 @@ build/
 
 ### Log ###
 /logs/
+
+### cache ###
+/cache

@@ -13,14 +13,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PollingDispatcher implements Dispatcher {
+    private static final PollingDispatcher POLLING_DISPATCHER = new PollingDispatcher();
     private ConcurrentHashMap<Route, AtomicInteger> pollingCache;
 
-    public PollingDispatcher() {
+    private PollingDispatcher() {
         pollingCache = new ConcurrentHashMap<>();
         List<Route> routes = ServerConfiguration.getInfo().getRoutes();
         for (Route route : routes) {
-            pollingCache.put(route, new AtomicInteger(0));
+            if (route.getLoadBalance().equals("polling")) {
+                pollingCache.put(route, new AtomicInteger(0));
+            }
         }
+    }
+
+    public static PollingDispatcher getInstance() {
+        return POLLING_DISPATCHER;
     }
 
     @Override
